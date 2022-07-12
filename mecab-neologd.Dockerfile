@@ -26,7 +26,13 @@ RUN curl -SL -o mecab-ipadic-${IPADIC_VERSION}.tar.gz ${ipadic_url} \
   && make install \
   && cd
 
-# TODO install neologd
+COPY make-mecab-ipadic-neologd.patch make-mecab-ipadic-neologd.patch
+
+RUN git clone --depth 1 https://github.com/neologd/mecab-ipadic-neologd.git \
+  && patch mecab-ipadic-neologd/libexec/make-mecab-ipadic-neologd.sh < make-mecab-ipadic-neologd.patch \
+  && mkdir -p mecab-ipadic-neologd/build \
+  && mv mecab-ipadic-${IPADIC_VERSION}.tar.gz mecab-ipadic-neologd/build/mecab-ipadic-${IPADIC_VERSION}.tar.gz \
+  && mecab-ipadic-neologd/bin/install-mecab-ipadic-neologd -n -y
 
 FROM alpine:3.16.0
 RUN apk add --update --no-cache openssl libstdc++ libgcc
