@@ -34,7 +34,7 @@ EOS
 ```
 
 ```console
-> docker run -ti --rm --platform linux/amd64 ghcr.io/ruslandoga/mecab-alpine:mecab-neolodg ash
+> docker run -ti --rm --platform linux/amd64 ghcr.io/ruslandoga/mecab-alpine:mecab-neologd ash
 
 # mecab -d /usr/local/lib/mecab/dic/mecab-ipadic-neologd
 昨日すき焼きを食べました
