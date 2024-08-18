@@ -10,59 +10,47 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  docker:
-    name: docker build amd64
+  build:
     runs-on: ubuntu-latest
 
     permissions:
       contents: read
       packages: write
 
+    strategy:
+      matrix:
+        version:
+          - mecab
+          - mecab-neologd
+
     steps:
       - uses: actions/checkout@v2
-
-      - name: set up docker buildx
-        uses: docker/setup-buildx-action@v1
-
-      - name: log in to the container registry
-        uses: docker/login-action@v1
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata (tags, labels) for Docker
+      - uses: docker/metadata-action@v5
         id: meta
-        uses: docker/metadata-action@v3
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
-      - name: build and push mecab
-        uses: docker/build-push-action@v2
+      - uses: docker/build-push-action@v6
         with:
           context: .
-          file: mecab.Dockerfile
-          build-args: GIT_SHA={{ github.sha }}
+          file: ${{ matrix.version }}.Dockerfile
+          build-args: GIT_SHA=${{ github.sha }}
           push: true
+          platforms: linux/amd64, linux/arm64
           cache-from: type=gha
           cache-to: type=gha,mode=max
           tags: |
-            ${{ steps.meta.outputs.tags }}
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:mecab-${{ github.sha }}
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:mecab
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:mecab-latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.version }}-${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.version }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.version }}-latest
 
-      - name: build and push mecab-neologd
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          file: mecab-neologd.Dockerfile
-          build-args: GIT_SHA={{ github.sha }}
-          push: true
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:mecab-neologd-${{ github.sha }}
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:mecab-neologd
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:mecab-neologd-latest
+      - name: image digest
+        run: echo ${{ steps.docker_build.outputs.digest }}

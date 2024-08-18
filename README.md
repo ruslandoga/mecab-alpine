@@ -2,7 +2,7 @@ Copy the binaries and dictionaries into your container to avoid bloat:
 
 ```Dockerfile
 FROM ghcr.io/ruslandoga/mecab-alpine:mecab AS mecab
-FROM alpine:3.16.0 AS your_app
+FROM alpine:3.20.2 AS your_app
 RUN apk add --update --no-cache openssl libstdc++ libgcc
 COPY --from=mecab /usr/local /usr/local
 # now `mecab` is available in `your_app`
@@ -17,7 +17,7 @@ ghcr.io/ruslandoga/mecab-alpine   mecab           432365fff470   44 hours ago   
 ```
 
 ```console
-> docker run -ti --rm --platform linux/amd64 ghcr.io/ruslandoga/mecab-alpine:mecab ash
+> docker run -ti --rm ghcr.io/ruslandoga/mecab-alpine:mecab ash
 
 # which mecab
 /usr/local/bin/mecab
@@ -34,7 +34,7 @@ EOS
 ```
 
 ```console
-> docker run -ti --rm --platform linux/amd64 ghcr.io/ruslandoga/mecab-alpine:mecab-neologd ash
+> docker run -ti --rm ghcr.io/ruslandoga/mecab-alpine:mecab-neologd ash
 
 # mecab -d /usr/local/lib/mecab/dic/mecab-ipadic-neologd
 昨日すき焼きを食べました
